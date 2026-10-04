@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOMAD Detailing | Премиальный 3D Детейлинг</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #08080c;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Fixed 3D background canvas */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Enable pointer interaction specifically over 3D control overlay */
+        .interactive-3d {
+            pointer-events: auto !important;
+        }
+
+        /* Glassmorphic Panels */
+        .glass-panel {
+            background: rgba(18, 18, 26, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Glow effects */
+        .glow-blue {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08080c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+
+        /* Before/After slider line */
+        .ba-slider-handle {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- 3D Canvas Background Container -->
+    <div id="webgl-container"></div>
+
+    <!-- Fixed Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-50 px-4 md:px-10 py-4 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-xl font-orbitron shadow-lg group-hover:scale-105 transition-transform">
+                    N
+                </div>
+                <div>
+                    <span class="font-orbitron text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">NOMAD</span>
+                    <span class="text-xs block text-blue-400 font-semibold uppercase tracking-widest -mt-1">Detailing Studio</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+                <a href="#services" class="hover:text-blue-400 transition-colors">Услуги</a>
+                <a href="#configurator" class="hover:text-blue-400 transition-colors">3D Студия</a>
+                <a href="#calculator" class="hover:text-blue-400 transition-colors">Калькулятор</a>
+                <a href="#before-after" class="hover:text-blue-400 transition-colors">Результаты</a>
+                <a href="#contacts" class="hover:text-blue-400 transition-colors">Контакты</a>
+            </nav>
+
+            <!-- CTA Button & Mobile Toggle -->
+            <div class="flex items-center gap-4">
+                <button onclick="openBookingModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs md:text-sm font-bold rounded-xl uppercase tracking-wider transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-xs"></i>
+                    <span>Записаться</span>
+                </button>
+
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-white text-xl p-1">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-2xl p-6 flex-col gap-4 text-center">
+            <a href="#services" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Услуги</a>
+            <a href="#configurator" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">3D Студия</a>
+            <a href="#calculator" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Калькулятор</a>
+            <a href="#before-after" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Результаты</a>
+            <a href="#contacts" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Контакты</a>
+        </div>
+    </header>
+
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <main class="relative z-10">
+
+        <!-- SECTION 1: HERO -->
+        <section class="min-h-screen pt-32 pb-20 px-4 md:px-10 flex flex-col justify-center items-center relative overflow-hidden">
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-blue-400 text-xs md:text-sm font-semibold tracking-wide border border-blue-500/30">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        Инновационный детейлинг в Астане
+                    </div>
+
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight font-orbitron tracking-tight">
+                        Искусство <br>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-500 glow-text">
+                            Совершенства
+                        </span>
+                    </h1>
+
+                    <p class="text-gray-300 text-base md:text-lg max-w-2xl leading-relaxed">
+                        Возвращаем салону и кузову первозданный заводской блеск. Профессиональное нанесение премиальной нанокерамики, оклейка антигравийной пленкой и детальная реставрация.
+                    </p>
+
+                    <div class="flex flex-wrap gap-4 justify-center lg:justify-start pt-2">
+                        <button onclick="openBookingModal()" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-sm transition-all shadow-xl hover:shadow-blue-500/30 active:scale-95 flex items-center gap-3">
+                            <span>Забронировать визит</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <a href="#configurator" class="px-8 py-4 glass-card hover:bg-white/10 text-white font-bold rounded-xl uppercase tracking-wider text-sm transition-all flex items-center gap-3 border border-white/15">
+                            <i class="fa-solid fa-cube text-blue-400"></i>
+                            <span>3D Настройка</span>
+                        </a>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-3 gap-6 pt-6 border-t border-white/10">
+                        <div>
+                            <div class="text-2xl md:text-3xl font-black font-orbitron text-white">8+</div>
+                            <p class="text-xs text-gray-400 mt-1">Лет опыта</p>
+                        </div>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-black font-orbitron text-blue-400">1,500+</div>
+                            <p class="text-xs text-gray-400 mt-1">Автомобилей</p>
+                        </div>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-black font-orbitron text-indigo-400">100%</div>
+                            <p class="text-xs text-gray-400 mt-1">Гарантия качества</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty space for 3D Car visibility on desktop -->
+                <div class="lg:col-span-5 h-64 lg:h-auto pointer-events-none"></div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: 3D STUDIO CONFIGURATOR -->
+        <section id="configurator" class="py-20 px-4 md:px-10 relative">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center max-w-3xl mx-auto mb-12">
+                    <h2 class="text-3xl md:text-5xl font-black font-orbitron mb-4">
+                        Интерактивная <span class="text-blue-500">3D-Студия</span>
+                    </h2>
+                    <p class="text-gray-400">Управляйте освещением и цветом автомобиля прямо в интерактивном режиме ниже</p>
+                </div>
+
+                <!-- Configurator Controls Overlay -->
+                <div class="glass-panel rounded-3xl p-6 md:p-8 max-w-4xl mx-auto interactive-3d">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                        
+                        <!-- Color Selector -->
+                        <div class="space-y-3">
+                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Цвет кузова</label>
+                            <div class="flex items-center gap-3">
+                                <button onclick="setCarColor(0x0c0c12)" title="Черный глянец" class="w-9 h-9 rounded-full bg-black border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                                <button onclick="setCarColor(0xd1d5db)" title="Серебристый перламутр" class="w-9 h-9 rounded-full bg-gray-300 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                                <button onclick="setCarColor(0xb91c1c)" title="Рубиновый металлик" class="w-9 h-9 rounded-full bg-red-700 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                                <button onclick="setCarColor(0x1d4ed8)" title="Имперский синий" class="w-9 h-9 rounded-full bg-blue-700 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                                <button onclick="setCarColor(0xd97706)" title="Золотой неон" class="w-9 h-9 rounded-full bg-amber-600 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                            </div>
+                        </div>
+
+                        <!-- Lighting Toggle -->
+                        <div class="space-y-3">
+                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Режимы освещения</label>
+                            <div class="flex gap-2">
+                                <button onclick="setLightMode('studio')" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10 active:scale-95">
+                                    <i class="fa-solid fa-lightbulb mr-1 text-yellow-400"></i> Студия
+                                </button>
+                                <button onclick="setLightMode('neon')" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-purple-600/30 transition-all border border-white/10 active:scale-95">
+                                    <i class="fa-solid fa-bolt mr-1 text-purple-400"></i> Неон
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- View Angle Controls -->
+                        <div class="space-y-3">
+                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Вращение & Ракурс</label>
+                            <div class="flex gap-2">
+                                <button onclick="toggleAutoRotate()" id="rotate-btn" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10">
+                                    <i class="fa-solid fa-rotate mr-1 text-blue-400"></i> Панорама
+                                </button>
+                                <button onclick="resetCameraView()" class="py-2 px-4 glass-card rounded-xl text-xs font-semibold hover:bg-white/20 transition-all">
+                                    <i class="fa-solid fa-arrows-to-center"></i> Сброс
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: SERVICES -->
+        <section id="services" class="py-20 px-4 md:px-10">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                    <div>
+                        <div class="text-blue-400 text-sm font-bold uppercase tracking-widest mb-2">Наши направления</div>
+                        <h2 class="text-3xl md:text-5xl font-black font-orbitron">Премиальные <span class="text-blue-500">Услуги</span></h2>
+                    </div>
+                    <p class="text-gray-400 max-w-md">Нажмите на любую карточку, чтобы узнать детальный регламент работ, используемые составы и гарантию.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Service 1 -->
+                    <div onclick="openServiceDetail('ceramic')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-blue-400 transition-colors">Нанокерамика</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                                Трехслойное защитное покрытие с эффектом жидкого стекла. Гидрофоб, блеск и защита от УФ на 3 года.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-blue-400">
+                            <span>от 120 000 ₸</span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Service 2 -->
+                    <div onclick="openServiceDetail('polishing')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-purple-400 transition-colors">Восстановительная Полировка</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                                Безопасная мягкая и глубокая полировка ЛКП. Полное устранение голограмм, царапин и паутинки.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-purple-400">
+                            <span>от 80 000 ₸</span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Service 3 -->
+                    <div onclick="openServiceDetail('ppf')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-car-side"></i>
+                            </div>
+                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-emerald-400 transition-colors">PPF Бронирование</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                                Оклейка антигравийной полиуретановой пленкой премиум класса (SunTek / STEK) с самовосстановлением.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400">
+                            <span>от 250 000 ₸</span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Service 4 -->
+                    <div onclick="openServiceDetail('interior')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-spray-can-sparkles"></i>
+                            </div>
+                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-amber-400 transition-colors">Детейлинг Салона</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                                Глубокая гипоаллергенная химчистка со снятием сидений, озонированием и защитной консервацией кожи.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-400">
+                            <span>от 65 000 ₸</span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: INTERACTIVE PRICE CALCULATOR -->
+        <section id="calculator" class="py-20 px-4 md:px-10">
+            <div class="max-w-5xl mx-auto glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Онлайн-калькулятор</span>
+                    <h2 class="text-3xl md:text-4xl font-black font-orbitron mt-2">Расчет <span class="text-blue-500">Стоимости</span></h2>
+                    <p class="text-gray-400 text-sm mt-2">Выберите тип кузова и нужные опции для мгновенного предварительного расчета</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- Options Selection -->
+                    <div class="lg:col-span-7 space-y-6">
+                        
+                        <!-- Step 1: Car Class -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-3">1. Класс автомобиля</label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button onclick="selectCarClass(1.0, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold border-2 border-blue-500 bg-blue-500/20 text-white transition-all">
+                                    <i class="fa-solid fa-car text-base block mb-1"></i>
+                                    Седан / Хэтчбек
+                                </button>
+                                <button onclick="selectCarClass(1.25, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
+                                    <i class="fa-solid fa-truck-pickup text-base block mb-1"></i>
+                                    Кроссовер
+                                </button>
+                                <button onclick="selectCarClass(1.5, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
+                                    <i class="fa-solid fa-truck-monster text-base block mb-1"></i>
+                                    Внедорожник
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Checkboxes -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-3">2. Услуги и покрытия</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" onchange="calculateTotal()" value="80000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <div>
+                                            <div class="text-sm font-bold">Восстановительная полировка</div>
+                                            <div class="text-xs text-gray-400">Устранение царапин и паутинки</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-blue-400">+80 000 ₸</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" onchange="calculateTotal()" value="120000" class="calc-checkbox w-5 h-5 rounded accent-blue-600" checked>
+                                        <div>
+                                            <div class="text-sm font-bold">Нанокерамика 9H (2 слоя)</div>
+                                            <div class="text-xs text-gray-400">Защита кузова и глубокий глянец</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-blue-400">+120 000 ₸</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" onchange="calculateTotal()" value="180000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <div>
+                                            <div class="text-sm font-bold">Бронирование зоны риска (PPF)</div>
+                                            <div class="text-xs text-gray-400">Капот, бампер, оптика, зеркала</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-blue-400">+180 000 ₸</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" onchange="calculateTotal()" value="55000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <div>
+                                            <div class="text-sm font-bold">Детейлинг химчистка салона</div>
+                                            <div class="text-xs text-gray-400">С разбором и консервацией кожи</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-blue-400">+55 000 ₸</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="lg:col-span-5 glass-panel rounded-2xl p-6 border border-blue-500/30 flex flex-col justify-between h-full space-y-6">
+                        <div>
+                            <h3 class="text-lg font-bold font-orbitron mb-4 border-b border-white/10 pb-3">Итоговый расчет</h3>
+                            
+                            <div class="space-y-3 text-sm text-gray-300">
+                                <div class="flex justify-between">
+                                    <span>Коэффициент кузова:</span>
+                                    <span id="calc-coeff" class="font-bold text-white">x1.0 (Седан)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Срок выполнения:</span>
+                                    <span class="font-bold text-blue-400">1-2 дня</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Гарантия на работы:</span>
+                                    <span class="font-bold text-emerald-400">До 3 лет</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-white/10">
+                            <div class="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Примерная стоимость:</div>
+                            <div id="total-price" class="text-3xl sm:text-4xl font-black font-orbitron text-blue-400 glow-text mb-6">
+                                120 000 ₸
+                            </div>
+
+                            <button onclick="openBookingModal()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95">
+                                Зафиксировать цену и дату
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: BEFORE / AFTER SLIDER -->
+        <section id="before-after" class="py-20 px-4 md:px-10">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center max-w-2xl mx-auto mb-12">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Визуальный эффект</span>
+                    <h2 class="text-3xl md:text-5xl font-black font-orbitron mt-2">До / После <span class="text-blue-500">Полировки</span></h2>
+                    <p class="text-gray-400 text-sm mt-2">Перетащите ползунок в центре, чтобы оценить восстановительный эффект нанокерамики</p>
+                </div>
+
+                <div class="relative w-full h-[380px] sm:h-[480px] rounded-3xl overflow-hidden glass-panel border border-white/20 select-none cursor-ew-resize" id="ba-container">
+                    
+                    <!-- AFTER IMAGE (BOTTOM LAYER - Perfect Mirror Gloss) -->
+                    <div class="absolute inset-0 bg-cover bg-center flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1600&q=80');">
+                        <span class="absolute top-6 right-6 px-4 py-2 glass-panel rounded-full text-xs font-bold tracking-widest text-emerald-400 border border-emerald-500/40">
+                            ПОСЛЕ (Зеркальный блеск + Керамика)
+                        </span>
+                    </div>
+
+                    <!-- BEFORE IMAGE (TOP LAYER - Dull Scratched) -->
+                    <div id="ba-before-layer" class="absolute inset-y-0 left-0 bg-cover bg-center overflow-hidden" style="width: 50%; background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80'); filter: grayscale(40%) contrast(85%);">
+                        <span class="absolute top-6 left-6 px-4 py-2 glass-panel rounded-full text-xs font-bold tracking-widest text-red-400 border border-red-500/40 whitespace-nowrap">
+                            ДО (Оксид, Царапины, Голограммы)
+                        </span>
+                    </div>
+
+                    <!-- SLIDER DIVIDER LINE -->
+                    <div id="ba-slider-line" class="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize ba-slider-handle flex items-center justify-center" style="left: 50%;">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 border-2 border-white text-white flex items-center justify-center text-xs shadow-xl">
+                            <i class="fa-solid fa-arrows-left-right"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: CONTACTS & LOCATION -->
+        <section id="contacts" class="py-20 px-4 md:px-10">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <div class="lg:col-span-5 space-y-8">
+                    <div>
+                        <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Контакты & Локация</span>
+                        <h2 class="text-3xl md:text-5xl font-black font-orbitron mt-2">Ждем <span class="text-blue-500">Вас</span></h2>
+                        <p class="text-gray-400 text-sm mt-3">Теплый охраняемый паркинг, комфортная VIP-зона ожидания с кофе и напитками.</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-400 uppercase font-semibold">Адрес студии</div>
+                                <div class="text-sm font-bold text-white mt-1">г. Астана, пр. Мангилик Ел, 55/2</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-400 uppercase font-semibold">Телефон для записи</div>
+                                <a href="tel:+77770000000" class="text-sm font-bold text-blue-400 hover:underline mt-1 block">+7 (777) 000-00-00</a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-400 uppercase font-semibold">График работы</div>
+                                <div class="text-sm font-bold text-white mt-1">Ежедневно с 09:00 до 21:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="lg:col-span-7 glass-panel rounded-3xl p-8 border border-white/10">
+                    <h3 class="text-xl font-bold font-orbitron mb-6">Оставить заявку на консультацию</h3>
+                    <form onsubmit="handleContactSubmit(event)" class="space-y-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-400 block mb-2">Ваше имя</label>
+                                <input type="text" required placeholder="Арман" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-400 block mb-2">Номер телефона</label>
+                                <input type="tel" required placeholder="+7 (707) 000-00-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-semibold text-gray-400 block mb-2">Марка и модель авто</label>
+                            <input type="text" placeholder="например: BMW M5 F90" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-semibold text-gray-400 block mb-2">Интересующая услуга / вопрос</label>
+                            <textarea rows="3" placeholder="Укажите подробности..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95">
+                            Отправить заявку
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-white/10 py-10 px-4 md:px-10 text-xs text-gray-500">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p>&copy; 2026 NOMAD Detailing Studio. Все права защищены.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-gray-300">Политика конфиденциальности</a>
+                    <a href="#" class="hover:text-gray-300">Публичная оферта</a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- MODAL 1: ONLINE BOOKING -->
+    <div id="booking-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-blue-500/30 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeBookingModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-2xl font-black font-orbitron mb-2">Запись в Студию</h3>
+            <p class="text-xs text-gray-400 mb-6">Выберите удобное время, мы забронируем рабочий бокс под ваш автомобиль</p>
+
+            <form onsubmit="handleBookingSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Имя и Фамилия</label>
+                    <input type="text" required placeholder="Ерлан" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Телефон</label>
+                    <input type="tel" required placeholder="+7 (700) 123-45-67" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-400 block mb-1">Желаемая дата</label>
+                        <input type="date" required class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-400 block mb-1">Время</label>
+                        <select class="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
+                            <option>09:00</option>
+                            <option>12:00</option>
+                            <option>15:00</option>
+                            <option>18:00</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Основная услуга</label>
+                    <select class="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
+                        <option>Нанокерамика 9H</option>
+                        <option>Восстановительная полировка</option>
+                        <option>PPF Бронирование кузова</option>
+                        <option>Детейлинг химчистка салона</option>
+                        <option>Комплексная защита</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 mt-2">
+                    Подтвердить бронирование
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: SERVICE DETAIL POPUP -->
+    <div id="service-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-white/15 relative">
+            <button onclick="closeServiceModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div id="service-modal-content">
+                <!-- Dynamic content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden glass-panel border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <div>
+            <div id="toast-title" class="text-sm font-bold text-white">Успешно!</div>
+            <div id="toast-msg" class="text-xs text-gray-300">Ваша заявка принята. Менеджер свяжется с вами.</div>
+        </div>
+    </div>
+
+    <script>
+        // -------------------------------------------------------------
+        // THREE.JS 3D SCENE & CAR MODEL GENERATOR
+        // -------------------------------------------------------------
+        let scene, camera, renderer;
+        let carGroup, carBodyMesh, studioLightsGroup, neonLightsGroup;
+        let isAutoRotate = true;
+
+        function init3D() {
+            const container = document.getElementById('webgl-container');
+
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x08080c, 0.035);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(4, 2, 7);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            setupLighting();
+
+            // Environment & Car
+            createFloorGrid();
+            createCarModel();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+
+            // Start Render Loop
+            animate();
+        }
+
+        function setupLighting() {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            // Studio Overhead Lights
+            studioLightsGroup = new THREE.Group();
+
+            const topSpot = new THREE.SpotLight(0xffffff, 120);
+            topSpot.position.set(0, 10, 0);
+            topSpot.angle = Math.PI / 3;
+            topSpot.penumbra = 0.5;
+            topSpot.castShadow = true;
+            studioLightsGroup.add(topSpot);
+
+            const sideLight = new THREE.DirectionalLight(0x3b82f6, 1.5);
+            sideLight.position.set(5, 5, 5);
+            studioLightsGroup.add(sideLight);
+
+            scene.add(studioLightsGroup);
+
+            // Neon Lights Group
+            neonLightsGroup = new THREE.Group();
+
+            const bluePoint = new THREE.PointLight(0x2563eb, 50, 15);
+            bluePoint.position.set(-3, 0.5, 3);
+            neonLightsGroup.add(bluePoint);
+
+            const purplePoint = new THREE.PointLight(0xa855f7, 50, 15);
+            purplePoint.position.set(3, 0.5, -3);
+            neonLightsGroup.add(purplePoint);
+
+            neonLightsGroup.visible = false;
+            scene.add(neonLightsGroup);
+        }
+
+        function createFloorGrid() {
+            // Reflective floor
+            const floorGeo = new THREE.PlaneGeometry(80, 80);
+            const floorMat = new THREE.MeshStandardMaterial({
+                color: 0x08080c,
+                roughness: 0.15,
+                metalness: 0.8
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Grid overlay
+            const grid = new THREE.GridHelper(40, 40, 0x2563eb, 0x111118);
+            grid.position.y = 0.005;
+            grid.material.transparent = true;
+            grid.material.opacity = 0.25;
+            scene.add(grid);
+        }
+
+        function createCarModel() {
+            carGroup = new THREE.Group();
+
+            // Materials
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0x0c0c12,
+                roughness: 0.1,
+                metalness: 0.85,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.05
+            });
+
+            const glassMat = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                roughness: 0.0,
+                metalness: 0.9,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.8 });
+            const chromeMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.95, roughness: 0.1 });
+
+            // Main Lower Body
+            const bodyGeo = new THREE.BoxGeometry(2.4, 0.65, 4.8);
+            carBodyMesh = new THREE.Mesh(bodyGeo, bodyMaterial);
+            carBodyMesh.position.y = 0.55;
+            carBodyMesh.castShadow = true;
+            carGroup.add(carBodyMesh);
+
+            // Sleek Roof Cabin
+            const cabinGeo = new THREE.BoxGeometry(1.9, 0.55, 2.3);
+            const cabin = new THREE.Mesh(cabinGeo, glassMat);
+            cabin.position.set(0, 1.05, -0.2);
+            cabin.castShadow = true;
+            carGroup.add(cabin);
+
+            // Hood slant accent
+            const hoodGeo = new THREE.BoxGeometry(2.0, 0.1, 1.4);
+            const hood = new THREE.Mesh(hoodGeo, bodyMaterial);
+            hood.position.set(0, 0.82, 1.1);
+            hood.rotation.x = 0.1;
+            carGroup.add(hood);
+
+            // Wheels & Brake Discs
+            const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 32);
+            const rimGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.3, 16);
+
+            const wheelPositions = [
+                [-1.25, 0.38, 1.4],  // FL
+                [1.25, 0.38, 1.4],   // FR
+                [-1.25, 0.38, -1.4], // RL
+                [1.25, 0.38, -1.4]  // RR
+            ];
+
+            wheelPositions.forEach(pos => {
+                const wGroup = new THREE.Group();
+                wGroup.position.set(pos[0], pos[1], pos[2]);
+                wGroup.rotation.z = Math.PI / 2;
+
+                const tire = new THREE.Mesh(wheelGeo, wheelMat);
+                tire.castShadow = true;
+
+                const rim = new THREE.Mesh(rimGeo, chromeMat);
+
+                wGroup.add(tire);
+                wGroup.add(rim);
+                carGroup.add(wGroup);
+            });
+
+            // Headlights
+            const headLightGeo = new THREE.BoxGeometry(0.6, 0.12, 0.1);
+            const headLightMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+
+            const hlL = new THREE.Mesh(headLightGeo, headLightMat);
+            hlL.position.set(-0.75, 0.65, 2.41);
+            carGroup.add(hlL);
+
+            const hlR = new THREE.Mesh(headLightGeo, headLightMat);
+            hlR.position.set(0.75, 0.65, 2.41);
+            carGroup.add(hlR);
+
+            // Taillights
+            const tailLightGeo = new THREE.BoxGeometry(0.8, 0.1, 0.1);
+            const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+
+            const tl = new THREE.Mesh(tailLightGeo, tailLightMat);
+            tl.position.set(0, 0.68, -2.41);
+            carGroup.add(tl);
+
+            // Position car in scene
+            carGroup.position.set(1.5, 0, 0);
+            scene.add(carGroup);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isAutoRotate && carGroup) {
+                carGroup.rotation.y += 0.003;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // -------------------------------------------------------------
+        // INTERACTIVE CONFIGURATOR CONTROLS
+        // -------------------------------------------------------------
+        function setCarColor(hexColor) {
+            if (carBodyMesh) {
+                carBodyMesh.material.color.setHex(hexColor);
+            }
+        }
+
+        function setLightMode(mode) {
+            if (mode === 'studio') {
+                studioLightsGroup.visible = true;
+                neonLightsGroup.visible = false;
+            } else {
+                studioLightsGroup.visible = false;
+                neonLightsGroup.visible = true;
+            }
+        }
+
+        function toggleAutoRotate() {
+            isAutoRotate = !isAutoRotate;
+            const btn = document.getElementById('rotate-btn');
+            btn.classList.toggle('bg-blue-600/40');
+        }
+
+        function resetCameraView() {
+            camera.position.set(4, 2, 7);
+            if (carGroup) carGroup.rotation.y = 0;
+        }
+
+        // -------------------------------------------------------------
+        // CALCULATOR LOGIC
+        // -------------------------------------------------------------
+        let currentCoeff = 1.0;
+
+        function selectCarClass(coeff, btnEl) {
+            currentCoeff = coeff;
+            document.querySelectorAll('.car-class-btn').forEach(b => {
+                b.classList.remove('border-2', 'border-blue-500', 'bg-blue-500/20', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+
+            btnEl.classList.add('border-2', 'border-blue-500', 'bg-blue-500/20', 'text-white');
+            btnEl.classList.remove('text-gray-400');
+
+            const coeffText = coeff === 1.0 ? 'x1.0 (Седан)' : (coeff === 1.25 ? 'x1.25 (Кроссовер)' : 'x1.5 (Внедорожник)');
+            document.getElementById('calc-coeff').textContent = coeffText;
+
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const checkboxes = document.querySelectorAll('.calc-checkbox');
+            let sum = 0;
+
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    sum += parseInt(cb.value);
+                }
+            });
+
+            const total = Math.round(sum * currentCoeff);
+            document.getElementById('total-price').textContent = total.toLocaleString('ru-RU') + ' ₸';
+        }
+
+        // -------------------------------------------------------------
+        // BEFORE / AFTER SLIDER LOGIC
+        // -------------------------------------------------------------
+        function initBeforeAfterSlider() {
+            const container = document.getElementById('ba-container');
+            const beforeLayer = document.getElementById('ba-before-layer');
+            const sliderLine = document.getElementById('ba-slider-line');
+            let isDragging = false;
+
+            function moveSlider(x) {
+                const rect = container.getBoundingClientRect();
+                let position = (x - rect.left) / rect.width;
+                if (position < 0) position = 0;
+                if (position > 1) position = 1;
+
+                const percentage = position * 100;
+                beforeLayer.style.width = percentage + '%';
+                sliderLine.style.left = percentage + '%';
+            }
+
+            container.addEventListener('mousedown', (e) => { isDragging = true; moveSlider(e.clientX); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('mousemove', (e) => { if (isDragging) moveSlider(e.clientX); });
+
+            // Touch support
+            container.addEventListener('touchstart', (e) => { isDragging = true; moveSlider(e.touches[0].clientX); });
+            window.addEventListener('touchend', () => { isDragging = false; });
+            window.addEventListener('touchmove', (e) => { if (isDragging) moveSlider(e.touches[0].clientX); });
+        }
+
+        // -------------------------------------------------------------
+        // MODALS & NOTIFICATIONS
+        // -------------------------------------------------------------
+        function openBookingModal() {
+            document.getElementById('booking-modal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+            document.getElementById('mobile-menu').classList.toggle('flex');
+        }
+
+        const serviceDetailsData = {
+            ceramic: {
+                title: "Нанокерамика 9H",
+                price: "от 120 000 ₸",
+                time: "24-36 часов",
+                desc: "Нанесение 2-х слоев состава 9H + гидрофобный слой Top Coat. Обезжиривание кузова, дезактивация железа, мягкая подложечная полировка.",
+                steps: ["Детейлинг-мойка кузова и арок", "Глубокая очистка глиной", "Подготовительный полировочный этап", "Обезжиривание спиртовыми составами", "Послойное нанесение Ceramic Pro / ServFaces"]
+            },
+            polishing: {
+                title: "Восстановительная Полировка",
+                price: "от 80 000 ₸",
+                time: "12-24 часа",
+                desc: "Многошаговая полировка с сохранением толщины лака. Устраняет риски, въевшиеся пятна от почек и птичьего помета.",
+                steps: ["Замер толщины ЛКП толщиномером", "Маскировка пластиковых элементов", "Первичный шаг пастой высокой абразивности", "Финишный шаг для идеального зеркального глянца"]
+            },
+            ppf: {
+                title: "Антигравийная пленка (PPF)",
+                price: "от 250 000 ₸",
+                time: "2-3 дня",
+                desc: "Полная оклейка кузова или зон риска плотным полиуретаном (190-200 мкр) с лаковым слоем с самовосстановлением при нагреве.",
+                steps: ["Подготовка и выкройка по лекалам", "Очистка кузова", "Беспосадочная установка с заворотом краев", "Финишная сушка в боксе"]
+            },
+            interior: {
+                title: "Детейлинг Салона",
+                price: "от 65 000 ₸",
+                time: "10-14 часов",
+                desc: "Глубокая очистка кожаных и тканевых покрытий экстрактором, подача пара, пропитка бальзамом-кондиционером с запахом дорогой кожи.",
+                steps: ["Демонтаж сидений (по согласованию)", "Пневмо-очистка Tornador", "Обработка кожи составами Koch Chemie", "Озонирование и нейтрализация запахов"]
+            }
+        };
+
+        function openServiceDetail(key) {
+            const item = serviceDetailsData[key];
+            if (!item) return;
+
+            const html = `
+                <h3 class="text-2xl font-black font-orbitron text-blue-400 mb-2">${item.title}</h3>
+                <div class="flex gap-4 text-xs font-semibold text-gray-300 mb-4 pb-4 border-b border-white/10">
+                    <span><i class="fa-solid fa-tag text-blue-400 mr-1"></i> ${item.price}</span>
+                    <span><i class="fa-solid fa-clock text-blue-400 mr-1"></i> ${item.time}</span>
+                </div>
+                <p class="text-sm text-gray-300 leading-relaxed mb-6">${item.desc}</p>
+                
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Этапы выполнения:</h4>
+                <ul class="space-y-2 text-xs text-gray-300 mb-8">
+                    ${item.steps.map(s => `<li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-400"></i> ${s}</li>`).join('')}
+                </ul>
+
+                <button onclick="closeServiceModal(); openBookingModal();" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs shadow-lg">
+                    Записаться на эту услугу
+                </button>
+            `;
+
+            document.getElementById('service-modal-content').innerHTML = html;
+            document.getElementById('service-modal').classList.remove('hidden');
+        }
+
+        function closeServiceModal() {
+            document.getElementById('service-modal').classList.add('hidden');
+        }
+
+        function showToast(title, msg) {
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = msg;
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 4000);
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            showToast("Заявка отправлена!", "Мы перезвоним вам в течение 10 минут.");
+            e.target.reset();
+        }
+
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+            closeBookingModal();
+            showToast("Бронирование успешно!", "Ждем вас в назначенное время в студии NOMAD.");
+            e.target.reset();
+        }
+
+        // Window Load Initialization
+        window.onload = function() {
+            init3D();
+            initBeforeAfterSlider();
+            calculateTotal();
+        };
+    </script>
+</body>
+</html>
