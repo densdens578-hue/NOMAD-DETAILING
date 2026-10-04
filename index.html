@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOMAD Detailing | Премиальный 3D Детейлинг</title>
+    <title>NOMAD Detailing | Премиальный 3D Детейлинг в Астане</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Three.js Library -->
+    <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,12 +18,12 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #08080c;
+            background-color: #06070a;
             color: #f3f4f6;
             overflow-x: hidden;
         }
@@ -39,44 +40,65 @@
             width: 100vw;
             height: 100vh;
             z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Enable pointer interaction specifically over 3D control overlay */
-        .interactive-3d {
-            pointer-events: auto !important;
+            pointer-events: auto;
         }
 
         /* Glassmorphic Panels */
         .glass-panel {
-            background: rgba(18, 18, 26, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
         }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+        /* Carbon Fiber Review Card Style inspired by user screenshot */
+        .review-card-carbon {
+            background: linear-gradient(145deg, #181a20, #0d0f14);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Glow effects */
-        .glow-blue {
-            box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+        .review-card-carbon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            background-size: 8px 8px;
+            pointer-events: none;
+            opacity: 0.4;
         }
 
+        .review-inner-box {
+            background: rgba(10, 11, 16, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .glow-border-green {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.25), inset 0 0 10px rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+
+        .glow-border-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.25), inset 0 0 10px rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        /* Text glow */
         .glow-text {
-            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
         }
 
         /* Custom Scrollbar */
@@ -84,7 +106,7 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #08080c;
+            background: #06070a;
         }
         ::-webkit-scrollbar-thumb {
             background: #2563eb;
@@ -94,13 +116,19 @@
             background: #3b82f6;
         }
 
-        /* Before/After slider line */
         .ba-slider-handle {
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 0 0 10px rgba(59, 130, 246, 0.8);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 12px rgba(59, 130, 246, 0.9);
+        }
+
+        /* Active color pill ring */
+        .color-btn.active {
+            transform: scale(1.18);
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
         }
     </style>
 </head>
-<body class="relative">
+<body class="relative select-none">
 
     <!-- 3D Canvas Background Container -->
     <div id="webgl-container"></div>
@@ -109,27 +137,28 @@
     <header class="fixed top-0 left-0 right-0 z-50 px-4 md:px-10 py-4 transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between">
             <a href="#" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-xl font-orbitron shadow-lg group-hover:scale-105 transition-transform">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center font-black text-xl font-orbitron shadow-lg group-hover:scale-105 transition-transform">
                     N
                 </div>
                 <div>
-                    <span class="font-orbitron text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">NOMAD</span>
-                    <span class="text-xs block text-blue-400 font-semibold uppercase tracking-widest -mt-1">Detailing Studio</span>
+                    <span class="font-orbitron text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-blue-400">NOMAD</span>
+                    <span class="text-[10px] block text-blue-400 font-semibold uppercase tracking-widest -mt-1">Detailing Studio</span>
                 </div>
             </a>
 
             <!-- Desktop Nav Links -->
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+                <a href="#configurator" class="hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-cube text-xs text-blue-400"></i> 3D Студия</a>
                 <a href="#services" class="hover:text-blue-400 transition-colors">Услуги</a>
-                <a href="#configurator" class="hover:text-blue-400 transition-colors">3D Студия</a>
                 <a href="#calculator" class="hover:text-blue-400 transition-colors">Калькулятор</a>
-                <a href="#before-after" class="hover:text-blue-400 transition-colors">Результаты</a>
+                <a href="#gallery" class="hover:text-blue-400 transition-colors">Процесс</a>
+                <a href="#reviews" class="hover:text-blue-400 transition-colors">Отзывы</a>
                 <a href="#contacts" class="hover:text-blue-400 transition-colors">Контакты</a>
             </nav>
 
             <!-- CTA Button & Mobile Toggle -->
             <div class="flex items-center gap-4">
-                <button onclick="openBookingModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs md:text-sm font-bold rounded-xl uppercase tracking-wider transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 flex items-center gap-2">
+                <button onclick="openBookingModal('Запись на первичную консультацию')" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs md:text-sm font-bold rounded-xl uppercase tracking-wider transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 flex items-center gap-2">
                     <i class="fa-solid fa-calendar-check text-xs"></i>
                     <span>Записаться</span>
                 </button>
@@ -141,122 +170,137 @@
         </div>
 
         <!-- Mobile Drawer Menu -->
-        <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-2xl p-6 flex-col gap-4 text-center">
-            <a href="#services" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Услуги</a>
-            <a href="#configurator" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">3D Студия</a>
-            <a href="#calculator" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Калькулятор</a>
-            <a href="#before-after" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Результаты</a>
-            <a href="#contacts" onclick="toggleMobileMenu()" class="py-2 text-gray-200 hover:text-blue-400 font-medium">Контакты</a>
+        <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-2xl p-4 flex-col gap-3 text-center text-sm">
+            <a href="#configurator" onclick="toggleMobileMenu()" class="py-1.5 text-blue-400 font-semibold">3D Студия</a>
+            <a href="#services" onclick="toggleMobileMenu()" class="py-1.5 text-gray-200 hover:text-blue-400">Услуги</a>
+            <a href="#calculator" onclick="toggleMobileMenu()" class="py-1.5 text-gray-200 hover:text-blue-400">Калькулятор</a>
+            <a href="#gallery" onclick="toggleMobileMenu()" class="py-1.5 text-gray-200 hover:text-blue-400">Процесс</a>
+            <a href="#reviews" onclick="toggleMobileMenu()" class="py-1.5 text-gray-200 hover:text-blue-400">Отзывы</a>
+            <a href="#contacts" onclick="toggleMobileMenu()" class="py-1.5 text-gray-200 hover:text-blue-400">Контакты</a>
         </div>
     </header>
 
-    <!-- MAIN SCROLLABLE CONTENT -->
-    <main class="relative z-10">
+    <!-- MAIN SCROLLABLE CONTENT OVERLAY -->
+    <main class="relative z-10 pointer-events-none">
 
-        <!-- SECTION 1: HERO -->
-        <section class="min-h-screen pt-32 pb-20 px-4 md:px-10 flex flex-col justify-center items-center relative overflow-hidden">
-            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- SECTION 1: HERO (TIGHTENED SPACING) -->
+        <section class="min-h-[85vh] pt-28 pb-10 px-4 md:px-10 flex flex-col justify-center items-center relative">
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 
-                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-blue-400 text-xs md:text-sm font-semibold tracking-wide border border-blue-500/30">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        Инновационный детейлинг в Астане
+                <div class="lg:col-span-7 space-y-5 text-center lg:text-left pointer-events-auto">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-card text-blue-400 text-xs font-semibold tracking-wide border border-blue-500/30">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                        Инновационная Детейлинг-Студия в Астане
                     </div>
 
-                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight font-orbitron tracking-tight">
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight font-orbitron tracking-tight">
                         Искусство <br>
-                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-500 glow-text">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 glow-text">
                             Совершенства
                         </span>
                     </h1>
 
-                    <p class="text-gray-300 text-base md:text-lg max-w-2xl leading-relaxed">
-                        Возвращаем салону и кузову первозданный заводской блеск. Профессиональное нанесение премиальной нанокерамики, оклейка антигравийной пленкой и детальная реставрация.
+                    <p class="text-gray-300 text-sm md:text-base max-w-xl leading-relaxed">
+                        Премиальная защита кузова и реставрация интерьера. Защитные антигравийные пленки STEK, нанокерамика 9H, полировка ЛКП и авторский детейлинг салона.
                     </p>
 
-                    <div class="flex flex-wrap gap-4 justify-center lg:justify-start pt-2">
-                        <button onclick="openBookingModal()" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-sm transition-all shadow-xl hover:shadow-blue-500/30 active:scale-95 flex items-center gap-3">
+                    <div class="flex flex-wrap gap-3 justify-center lg:justify-start pt-1">
+                        <button onclick="openBookingModal('Премиальный комплекс детейлинга')" class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/30 active:scale-95 flex items-center gap-2.5">
                             <span>Забронировать визит</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <a href="#configurator" class="px-8 py-4 glass-card hover:bg-white/10 text-white font-bold rounded-xl uppercase tracking-wider text-sm transition-all flex items-center gap-3 border border-white/15">
+                        <a href="#configurator" class="px-6 py-3.5 glass-card hover:bg-white/10 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all flex items-center gap-2.5 border border-white/15">
                             <i class="fa-solid fa-cube text-blue-400"></i>
-                            <span>3D Настройка</span>
+                            <span>Интерактивный 3D Вид</span>
                         </a>
                     </div>
 
                     <!-- Quick Stats -->
-                    <div class="grid grid-cols-3 gap-6 pt-6 border-t border-white/10">
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
                         <div>
-                            <div class="text-2xl md:text-3xl font-black font-orbitron text-white">8+</div>
-                            <p class="text-xs text-gray-400 mt-1">Лет опыта</p>
+                            <div class="text-xl md:text-2xl font-black font-orbitron text-white">8+</div>
+                            <p class="text-[11px] text-gray-400">Лет опыта</p>
                         </div>
                         <div>
-                            <div class="text-2xl md:text-3xl font-black font-orbitron text-blue-400">1,500+</div>
-                            <p class="text-xs text-gray-400 mt-1">Автомобилей</p>
+                            <div class="text-xl md:text-2xl font-black font-orbitron text-blue-400">1 800+</div>
+                            <p class="text-[11px] text-gray-400">Автомобилей</p>
                         </div>
                         <div>
-                            <div class="text-2xl md:text-3xl font-black font-orbitron text-indigo-400">100%</div>
-                            <p class="text-xs text-gray-400 mt-1">Гарантия качества</p>
+                            <div class="text-xl md:text-2xl font-black font-orbitron text-emerald-400">100%</div>
+                            <p class="text-[11px] text-gray-400">Гарантия качества</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Empty space for 3D Car visibility on desktop -->
-                <div class="lg:col-span-5 h-64 lg:h-auto pointer-events-none"></div>
+                <div class="lg:col-span-5 h-48 lg:h-auto pointer-events-none"></div>
 
             </div>
         </section>
 
-        <!-- SECTION 2: 3D STUDIO CONFIGURATOR -->
-        <section id="configurator" class="py-20 px-4 md:px-10 relative">
+        <!-- SECTION 2: 3D STUDIO CONFIGURATOR PANEL -->
+        <section id="configurator" class="py-10 px-4 md:px-10 relative">
             <div class="max-w-7xl mx-auto">
-                <div class="text-center max-w-3xl mx-auto mb-12">
-                    <h2 class="text-3xl md:text-5xl font-black font-orbitron mb-4">
-                        Интерактивная <span class="text-blue-500">3D-Студия</span>
+                <div class="text-center max-w-2xl mx-auto mb-6 pointer-events-auto">
+                    <div class="inline-block px-3 py-1 rounded-md glass-card text-[11px] text-blue-400 font-bold uppercase tracking-widest mb-2">
+                        <i class="fa-solid fa-arrows-spin mr-1"></i> Зажмите ЛКМ для вращения 3D модели
+                    </div>
+                    <h2 class="text-2xl md:text-4xl font-black font-orbitron mb-1">
+                        Интерактивная <span class="text-blue-500">3D-Конфигурация</span>
                     </h2>
-                    <p class="text-gray-400">Управляйте освещением и цветом автомобиля прямо в интерактивном режиме ниже</p>
+                    <p class="text-gray-400 text-xs">Меняйте цвет, финиш, освещение бокса и оптику в реальном времени</p>
                 </div>
 
                 <!-- Configurator Controls Overlay -->
-                <div class="glass-panel rounded-3xl p-6 md:p-8 max-w-4xl mx-auto interactive-3d">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div class="glass-panel rounded-2xl p-5 max-w-4xl mx-auto pointer-events-auto">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                         
                         <!-- Color Selector -->
-                        <div class="space-y-3">
-                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Цвет кузова</label>
-                            <div class="flex items-center gap-3">
-                                <button onclick="setCarColor(0x0c0c12)" title="Черный глянец" class="w-9 h-9 rounded-full bg-black border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
-                                <button onclick="setCarColor(0xd1d5db)" title="Серебристый перламутр" class="w-9 h-9 rounded-full bg-gray-300 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
-                                <button onclick="setCarColor(0xb91c1c)" title="Рубиновый металлик" class="w-9 h-9 rounded-full bg-red-700 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
-                                <button onclick="setCarColor(0x1d4ed8)" title="Имперский синий" class="w-9 h-9 rounded-full bg-blue-700 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
-                                <button onclick="setCarColor(0xd97706)" title="Золотой неон" class="w-9 h-9 rounded-full bg-amber-600 border-2 border-white/30 hover:scale-110 transition-transform focus:ring-2 focus:ring-blue-500"></button>
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">Цвет кузова</label>
+                            <div class="flex items-center gap-2">
+                                <button onclick="setCarColor(0x0a0b10, this)" title="Черный Onyx" class="color-btn active w-7 h-7 rounded-full bg-black border-2 border-white/30 hover:scale-110 transition-transform"></button>
+                                <button onclick="setCarColor(0xd1d5db, this)" title="Серебро Sterling" class="color-btn w-7 h-7 rounded-full bg-gray-300 border-2 border-white/30 hover:scale-110 transition-transform"></button>
+                                <button onclick="setCarColor(0x990000, this)" title="Красный Rosso" class="color-btn w-7 h-7 rounded-full bg-red-700 border-2 border-white/30 hover:scale-110 transition-transform"></button>
+                                <button onclick="setCarColor(0x0f4c81, this)" title="Синий Imperial" class="color-btn w-7 h-7 rounded-full bg-blue-700 border-2 border-white/30 hover:scale-110 transition-transform"></button>
+                                <button onclick="setCarColor(0xd97706, this)" title="Золотой Amber" class="color-btn w-7 h-7 rounded-full bg-amber-600 border-2 border-white/30 hover:scale-110 transition-transform"></button>
+                                <button onclick="setCarColor(0x064e3b, this)" title="Изумрудный British Green" class="color-btn w-7 h-7 rounded-full bg-emerald-800 border-2 border-white/30 hover:scale-110 transition-transform"></button>
                             </div>
                         </div>
 
-                        <!-- Lighting Toggle -->
-                        <div class="space-y-3">
-                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Режимы освещения</label>
+                        <!-- Finish Type -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">Финишное покрытие</label>
+                            <select onchange="setFinishType(this.value)" class="w-full bg-neutral-900/90 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-200 focus:outline-none focus:border-blue-500">
+                                <option value="gloss">Глянец (Ceramic Gloss)</option>
+                                <option value="matte">Матовый сатин (Matte PPF)</option>
+                                <option value="metallic">Металлик (Sparkle Metallic)</option>
+                            </select>
+                        </div>
+
+                        <!-- Light Modes -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">Освещение бокса</label>
                             <div class="flex gap-2">
-                                <button onclick="setLightMode('studio')" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10 active:scale-95">
-                                    <i class="fa-solid fa-lightbulb mr-1 text-yellow-400"></i> Студия
+                                <button onclick="setLightMode('studio')" class="flex-1 py-1.5 px-2 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10">
+                                    <i class="fa-solid fa-sun mr-1 text-yellow-400"></i> Студия
                                 </button>
-                                <button onclick="setLightMode('neon')" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-purple-600/30 transition-all border border-white/10 active:scale-95">
+                                <button onclick="setLightMode('neon')" class="flex-1 py-1.5 px-2 glass-card rounded-xl text-xs font-semibold hover:bg-purple-600/30 transition-all border border-white/10">
                                     <i class="fa-solid fa-bolt mr-1 text-purple-400"></i> Неон
                                 </button>
                             </div>
                         </div>
 
-                        <!-- View Angle Controls -->
-                        <div class="space-y-3">
-                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block">Вращение & Ракурс</label>
+                        <!-- Controls -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">Управление</label>
                             <div class="flex gap-2">
-                                <button onclick="toggleAutoRotate()" id="rotate-btn" class="flex-1 py-2 px-3 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10">
-                                    <i class="fa-solid fa-rotate mr-1 text-blue-400"></i> Панорама
+                                <button onclick="toggleHeadlights()" id="headlight-btn" class="flex-1 py-1.5 px-2 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10 bg-yellow-500/20">
+                                    <i class="fa-solid fa-lightbulb text-yellow-300 mr-1"></i> Фары
                                 </button>
-                                <button onclick="resetCameraView()" class="py-2 px-4 glass-card rounded-xl text-xs font-semibold hover:bg-white/20 transition-all">
-                                    <i class="fa-solid fa-arrows-to-center"></i> Сброс
+                                <button onclick="toggleAutoRotate()" id="rotate-btn" class="flex-1 py-1.5 px-2 glass-card rounded-xl text-xs font-semibold hover:bg-blue-600/30 transition-all border border-white/10 bg-blue-600/40">
+                                    <i class="fa-solid fa-rotate mr-1 text-blue-400"></i> 360°
                                 </button>
                             </div>
                         </div>
@@ -266,84 +310,84 @@
             </div>
         </section>
 
-        <!-- SECTION 3: SERVICES -->
-        <section id="services" class="py-20 px-4 md:px-10">
+        <!-- SECTION 3: SERVICES (COMPACT LAYOUT) -->
+        <section id="services" class="py-12 px-4 md:px-10 pointer-events-auto">
             <div class="max-w-7xl mx-auto">
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                     <div>
-                        <div class="text-blue-400 text-sm font-bold uppercase tracking-widest mb-2">Наши направления</div>
-                        <h2 class="text-3xl md:text-5xl font-black font-orbitron">Премиальные <span class="text-blue-500">Услуги</span></h2>
+                        <div class="text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">Наши направления</div>
+                        <h2 class="text-2xl md:text-4xl font-black font-orbitron">Премиальные <span class="text-blue-500">Услуги</span></h2>
                     </div>
-                    <p class="text-gray-400 max-w-md">Нажмите на любую карточку, чтобы узнать детальный регламент работ, используемые составы и гарантию.</p>
+                    <p class="text-gray-400 max-w-md text-xs">Нажмите на карточку услуги для подробного технологического регламента.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                     
                     <!-- Service 1 -->
-                    <div onclick="openServiceDetail('ceramic')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                    <div onclick="openServiceDetail('ceramic')" class="glass-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between h-full">
                         <div>
-                            <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl mb-4 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-shield-halved"></i>
                             </div>
-                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-blue-400 transition-colors">Нанокерамика</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                                Трехслойное защитное покрытие с эффектом жидкого стекла. Гидрофоб, блеск и защита от УФ на 3 года.
+                            <h3 class="text-lg font-bold font-orbitron mb-2 group-hover:text-blue-400 transition-colors">Нанокерамика 9H</h3>
+                            <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                                Трехслойная защитная гидрофобная броня с эффектом «жидкого стекла». Защищает от соли и выгорания.
                             </p>
                         </div>
-                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-blue-400">
+                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-blue-400">
                             <span>от 120 000 ₸</span>
-                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i></span>
                         </div>
                     </div>
 
                     <!-- Service 2 -->
-                    <div onclick="openServiceDetail('polishing')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                    <div onclick="openServiceDetail('polishing')" class="glass-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between h-full">
                         <div>
-                            <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl mb-4 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                             </div>
-                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-purple-400 transition-colors">Восстановительная Полировка</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                                Безопасная мягкая и глубокая полировка ЛКП. Полное устранение голограмм, царапин и паутинки.
+                            <h3 class="text-lg font-bold font-orbitron mb-2 group-hover:text-purple-400 transition-colors">Детейлинг Полировка</h3>
+                            <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                                Безопасная коррекция ЛКП толщиномером. Удаление царапин, оксидного слоя и голограмм.
                             </p>
                         </div>
-                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-purple-400">
+                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-purple-400">
                             <span>от 80 000 ₸</span>
-                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i></span>
                         </div>
                     </div>
 
                     <!-- Service 3 -->
-                    <div onclick="openServiceDetail('ppf')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                    <div onclick="openServiceDetail('ppf')" class="glass-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between h-full">
                         <div>
-                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl mb-4 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-car-side"></i>
                             </div>
-                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-emerald-400 transition-colors">PPF Бронирование</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                                Оклейка антигравийной полиуретановой пленкой премиум класса (SunTek / STEK) с самовосстановлением.
+                            <h3 class="text-lg font-bold font-orbitron mb-2 group-hover:text-emerald-400 transition-colors">PPF Бронирование</h3>
+                            <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                                Оклейка премиальной самовосстанавливающейся полиуретановой пленкой STEK / SunTek.
                             </p>
                         </div>
-                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400">
+                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400">
                             <span>от 250 000 ₸</span>
-                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i></span>
                         </div>
                     </div>
 
                     <!-- Service 4 -->
-                    <div onclick="openServiceDetail('interior')" class="glass-card rounded-2xl p-6 cursor-pointer group flex flex-col justify-between h-full">
+                    <div onclick="openServiceDetail('interior')" class="glass-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between h-full">
                         <div>
-                            <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-2xl mb-6 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl mb-4 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-spray-can-sparkles"></i>
                             </div>
-                            <h3 class="text-xl font-bold font-orbitron mb-3 group-hover:text-amber-400 transition-colors">Детейлинг Салона</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                                Глубокая гипоаллергенная химчистка со снятием сидений, озонированием и защитной консервацией кожи.
+                            <h3 class="text-lg font-bold font-orbitron mb-2 group-hover:text-amber-400 transition-colors">Детейлинг Салона</h3>
+                            <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                                Глубокая чистка паром и экстрактором, озонирование климат-контроля и пропитка кожи.
                             </p>
                         </div>
-                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-400">
+                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-400">
                             <span>от 65 000 ₸</span>
-                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                            <span class="group-hover:translate-x-1 transition-transform">Подробнее <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i></span>
                         </div>
                     </div>
 
@@ -351,34 +395,238 @@
             </div>
         </section>
 
-        <!-- SECTION 4: INTERACTIVE PRICE CALCULATOR -->
-        <section id="calculator" class="py-20 px-4 md:px-10">
-            <div class="max-w-5xl mx-auto glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden">
-                <div class="text-center max-w-2xl mx-auto mb-10">
-                    <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Онлайн-калькулятор</span>
-                    <h2 class="text-3xl md:text-4xl font-black font-orbitron mt-2">Расчет <span class="text-blue-500">Стоимости</span></h2>
-                    <p class="text-gray-400 text-sm mt-2">Выберите тип кузова и нужные опции для мгновенного предварительного расчета</p>
+        <!-- SECTION 4: DETAILING PROCESS GALLERY (NEW) -->
+        <section id="gallery" class="py-12 px-4 md:px-10 pointer-events-auto">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Рабочий процесс</span>
+                    <h2 class="text-2xl md:text-4xl font-black font-orbitron mt-1">Галерея <span class="text-blue-500">Мастерства</span></h2>
+                    <p class="text-gray-400 text-xs mt-1">Точность в каждой детали: оклейка PPF пленкой, полировка и подготовка кузова</p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-card rounded-2xl overflow-hidden group relative h-64 border border-white/10">
+                        <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" alt="PPF Installation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-5 flex flex-col justify-end">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-blue-400">Бронирование кузова</span>
+                            <h4 class="text-sm font-bold text-white mt-0.5">Нанесение прозрачной полиуретановой пленки</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group relative h-64 border border-white/10">
+                        <img src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=800&q=80" alt="Car Polishing" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-5 flex flex-col justify-end">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-purple-400">Полировка ЛКП</span>
+                            <h4 class="text-sm font-bold text-white mt-0.5">Коррекция лака эксцентриковой машинкой</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group relative h-64 border border-white/10">
+                        <img src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=800&q=80" alt="Interior Detailing" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-5 flex flex-col justify-end">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-amber-400">Уход за салоном</span>
+                            <h4 class="text-sm font-bold text-white mt-0.5">Очистка и кондиционирование кожи</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: REVIEWS (CUSTOM 2GIS CARBON CARDS MATCHING USER IMAGES) -->
+        <section id="reviews" class="py-12 px-4 md:px-10 pointer-events-auto">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="text-emerald-400 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-star mr-1"></i> Оценки 2GIS / Отзывы</span>
+                    <h2 class="text-2xl md:text-4xl font-black font-orbitron mt-1">Отзывы Наших <span class="text-blue-500">Клиентов</span></h2>
+                    <p class="text-gray-400 text-xs mt-1">Реальные впечатления владельцев после проведенных работ в NOMAD Detailing</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    
+                    <!-- Review Card 1 (anelya) -->
+                    <div class="review-card-carbon p-5 flex flex-col justify-between space-y-4">
+                        <div>
+                            <!-- User Bar -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full border-2 border-gray-600 overflow-hidden bg-neutral-800 shrink-0">
+                                        <img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=150&q=80" alt="anelya" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-white flex items-center gap-1">anelya <span class="text-xs">🤍</span></div>
+                                        <div class="text-[11px] text-gray-400">2 отзыва</div>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1 rounded-full text-[11px] font-semibold text-emerald-400 glow-border-green bg-emerald-950/40 hover:bg-emerald-900/60 transition-all">
+                                    Подписаться
+                                </button>
+                            </div>
+
+                            <!-- Rating & Date -->
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <div class="flex text-amber-400 text-sm gap-0.5">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">2 октября 2025</span>
+                            </div>
+
+                            <!-- Inner Review Text Card -->
+                            <div class="review-inner-box p-4 text-xs text-gray-200 leading-relaxed glow-border-blue">
+                                Была недавно в детейлинге, мне очень понравилось, сделали подсветку салона очень быстро и красиво, ребята молодцы 👍 Советую всем!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Card 2 (Ansar Zarubek) -->
+                    <div class="review-card-carbon p-5 flex flex-col justify-between space-y-4">
+                        <div>
+                            <!-- User Bar -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full border-2 border-emerald-500 overflow-hidden bg-neutral-800 shrink-0">
+                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Ansar Zarubek" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-white">Ansar Zarubek</div>
+                                        <div class="text-[11px] text-gray-400">14 отзывов</div>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1 rounded-full text-[11px] font-semibold text-emerald-400 glow-border-green bg-emerald-950/40 hover:bg-emerald-900/60 transition-all">
+                                    Подписаться
+                                </button>
+                            </div>
+
+                            <!-- Rating & Date -->
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <div class="flex text-amber-400 text-sm gap-0.5">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">27 сентября 2025</span>
+                            </div>
+
+                            <!-- Inner Review Text Card -->
+                            <div class="review-inner-box p-4 text-xs text-gray-200 leading-relaxed">
+                                Очень круто и красиво и качественно аккуратно сделали спасибо мужикам Очень доволен с результатом приезжаете не пожалеете 👌 ✅
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Card 3 (Алмаз Канатов) -->
+                    <div class="review-card-carbon p-5 flex flex-col justify-between space-y-4 border-2 border-emerald-500/20">
+                        <div>
+                            <!-- User Bar -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center bg-neutral-800 text-white font-bold text-base shrink-0">
+                                        A
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-white">Алмаз Канатов</div>
+                                        <div class="text-[11px] text-gray-400">20 отзывов</div>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1 rounded-full text-[11px] font-semibold text-emerald-400 glow-border-green bg-emerald-950/40 hover:bg-emerald-900/60 transition-all">
+                                    Подписаться
+                                </button>
+                            </div>
+
+                            <!-- Rating & Date -->
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <div class="flex text-amber-400 text-sm gap-0.5">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">11 апреля 2026</span>
+                            </div>
+
+                            <!-- Inner Review Text Card -->
+                            <div class="review-inner-box p-4 text-xs text-amber-100/90 leading-relaxed border-amber-500/30">
+                                Мастер своего дела отлично сделали хороший Детейлинг Номад советую 👍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Card 4 (Мади Маханов) -->
+                    <div class="review-card-carbon p-5 flex flex-col justify-between space-y-4">
+                        <div>
+                            <!-- User Bar -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full border-2 border-emerald-500/80 flex items-center justify-center bg-neutral-800 text-white font-bold text-base shrink-0 shadow-lg shadow-emerald-500/20">
+                                        M
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-white">Мади Маханов</div>
+                                        <div class="text-[11px] text-gray-400">7 отзывов</div>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1 rounded-full text-[11px] font-semibold text-emerald-400 glow-border-green bg-emerald-950/40 hover:bg-emerald-900/60 transition-all">
+                                    Подписаться
+                                </button>
+                            </div>
+
+                            <!-- Rating & Date -->
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <div class="flex text-amber-400 text-sm gap-0.5">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">Изменён 20 мая 2026</span>
+                            </div>
+
+                            <!-- Inner Review Text Card -->
+                            <div class="review-inner-box p-4 text-xs text-gray-200 leading-relaxed font-medium">
+                                Хорошая цена, качество супер!
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: INTERACTIVE PRICE CALCULATOR (TIGHTENED) -->
+        <section id="calculator" class="py-12 px-4 md:px-10 pointer-events-auto">
+            <div class="max-w-5xl mx-auto glass-panel rounded-3xl p-6 md:p-8 relative overflow-hidden">
+                <div class="text-center max-w-xl mx-auto mb-6">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Онлайн-калькулятор</span>
+                    <h2 class="text-2xl md:text-3xl font-black font-orbitron mt-1">Расчет <span class="text-blue-500">Стоимости</span></h2>
+                    <p class="text-gray-400 text-xs mt-1">Выберите класс авто и необходимые опции для расчета</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
                     <!-- Options Selection -->
-                    <div class="lg:col-span-7 space-y-6">
+                    <div class="lg:col-span-7 space-y-5">
                         
                         <!-- Step 1: Car Class -->
                         <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-3">1. Класс автомобиля</label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <button onclick="selectCarClass(1.0, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold border-2 border-blue-500 bg-blue-500/20 text-white transition-all">
-                                    <i class="fa-solid fa-car text-base block mb-1"></i>
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block mb-2">1. Класс автомобиля</label>
+                            <div class="grid grid-cols-3 gap-2.5">
+                                <button onclick="selectCarClass(1.0, this, 'Седан / Хэтчбек')" class="car-class-btn py-2.5 px-2 glass-card rounded-xl text-center text-xs font-bold border-2 border-blue-500 bg-blue-500/20 text-white transition-all">
+                                    <i class="fa-solid fa-car text-sm block mb-1"></i>
                                     Седан / Хэтчбек
                                 </button>
-                                <button onclick="selectCarClass(1.25, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
-                                    <i class="fa-solid fa-truck-pickup text-base block mb-1"></i>
+                                <button onclick="selectCarClass(1.25, this, 'Кроссовер')" class="car-class-btn py-2.5 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
+                                    <i class="fa-solid fa-truck-pickup text-sm block mb-1"></i>
                                     Кроссовер
                                 </button>
-                                <button onclick="selectCarClass(1.5, this)" class="car-class-btn py-3 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
-                                    <i class="fa-solid fa-truck-monster text-base block mb-1"></i>
+                                <button onclick="selectCarClass(1.5, this, 'Внедорожник')" class="car-class-btn py-2.5 px-2 glass-card rounded-xl text-center text-xs font-bold text-gray-400 hover:text-white transition-all">
+                                    <i class="fa-solid fa-truck-monster text-sm block mb-1"></i>
                                     Внедорожник
                                 </button>
                             </div>
@@ -386,50 +634,50 @@
 
                         <!-- Step 2: Checkboxes -->
                         <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-3">2. Услуги и покрытия</label>
-                            <div class="space-y-3">
-                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-400 block mb-2">2. Услуги и покрытия</label>
+                            <div class="space-y-2.5">
+                                <label class="flex items-center justify-between p-3 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
                                     <div class="flex items-center gap-3">
-                                        <input type="checkbox" onchange="calculateTotal()" value="80000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <input type="checkbox" onchange="calculateTotal()" value="80000" data-title="Восстановительная полировка" class="calc-checkbox w-4 h-4 rounded accent-blue-600">
                                         <div>
-                                            <div class="text-sm font-bold">Восстановительная полировка</div>
-                                            <div class="text-xs text-gray-400">Устранение царапин и паутинки</div>
+                                            <div class="text-xs font-bold">Восстановительная полировка</div>
+                                            <div class="text-[11px] text-gray-400">Устранение царапин и оксидного слоя</div>
                                         </div>
                                     </div>
                                     <span class="text-xs font-semibold text-blue-400">+80 000 ₸</span>
                                 </label>
 
-                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                <label class="flex items-center justify-between p-3 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
                                     <div class="flex items-center gap-3">
-                                        <input type="checkbox" onchange="calculateTotal()" value="120000" class="calc-checkbox w-5 h-5 rounded accent-blue-600" checked>
+                                        <input type="checkbox" onchange="calculateTotal()" value="120000" data-title="Нанокерамика 9H (2 слоя)" class="calc-checkbox w-4 h-4 rounded accent-blue-600" checked>
                                         <div>
-                                            <div class="text-sm font-bold">Нанокерамика 9H (2 слоя)</div>
-                                            <div class="text-xs text-gray-400">Защита кузова и глубокий глянец</div>
+                                            <div class="text-xs font-bold">Нанокерамика 9H (2 слоя)</div>
+                                            <div class="text-[11px] text-gray-400">Защита кузова и глубокий зеркальный глянец</div>
                                         </div>
                                     </div>
                                     <span class="text-xs font-semibold text-blue-400">+120 000 ₸</span>
                                 </label>
 
-                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                <label class="flex items-center justify-between p-3 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
                                     <div class="flex items-center gap-3">
-                                        <input type="checkbox" onchange="calculateTotal()" value="180000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <input type="checkbox" onchange="calculateTotal()" value="180000" data-title="Бронирование зоны риска (PPF)" class="calc-checkbox w-4 h-4 rounded accent-blue-600">
                                         <div>
-                                            <div class="text-sm font-bold">Бронирование зоны риска (PPF)</div>
-                                            <div class="text-xs text-gray-400">Капот, бампер, оптика, зеркала</div>
+                                            <div class="text-xs font-bold">Бронирование зоны риска (PPF)</div>
+                                            <div class="text-[11px] text-gray-400">Капот, бампер, оптика, зеркала</div>
                                         </div>
                                     </div>
                                     <span class="text-xs font-semibold text-blue-400">+180 000 ₸</span>
                                 </label>
 
-                                <label class="flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                                <label class="flex items-center justify-between p-3 glass-card rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
                                     <div class="flex items-center gap-3">
-                                        <input type="checkbox" onchange="calculateTotal()" value="55000" class="calc-checkbox w-5 h-5 rounded accent-blue-600">
+                                        <input type="checkbox" onchange="calculateTotal()" value="65000" data-title="Детейлинг химчистка салона" class="calc-checkbox w-4 h-4 rounded accent-blue-600">
                                         <div>
-                                            <div class="text-sm font-bold">Детейлинг химчистка салона</div>
-                                            <div class="text-xs text-gray-400">С разбором и консервацией кожи</div>
+                                            <div class="text-xs font-bold">Детейлинг химчистка салона</div>
+                                            <div class="text-[11px] text-gray-400">Чистка паром + озонирование салона</div>
                                         </div>
                                     </div>
-                                    <span class="text-xs font-semibold text-blue-400">+55 000 ₸</span>
+                                    <span class="text-xs font-semibold text-blue-400">+65 000 ₸</span>
                                 </label>
                             </div>
                         </div>
@@ -437,11 +685,11 @@
                     </div>
 
                     <!-- Summary Card -->
-                    <div class="lg:col-span-5 glass-panel rounded-2xl p-6 border border-blue-500/30 flex flex-col justify-between h-full space-y-6">
+                    <div class="lg:col-span-5 glass-panel rounded-2xl p-5 border border-blue-500/30 flex flex-col justify-between h-full space-y-5">
                         <div>
-                            <h3 class="text-lg font-bold font-orbitron mb-4 border-b border-white/10 pb-3">Итоговый расчет</h3>
+                            <h3 class="text-base font-bold font-orbitron mb-3 border-b border-white/10 pb-2">Итоговый расчет</h3>
                             
-                            <div class="space-y-3 text-sm text-gray-300">
+                            <div class="space-y-2 text-xs text-gray-300">
                                 <div class="flex justify-between">
                                     <span>Коэффициент кузова:</span>
                                     <span id="calc-coeff" class="font-bold text-white">x1.0 (Седан)</span>
@@ -457,14 +705,15 @@
                             </div>
                         </div>
 
-                        <div class="pt-6 border-t border-white/10">
-                            <div class="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Примерная стоимость:</div>
-                            <div id="total-price" class="text-3xl sm:text-4xl font-black font-orbitron text-blue-400 glow-text mb-6">
+                        <div class="pt-4 border-t border-white/10">
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Примерная стоимость:</div>
+                            <div id="total-price" class="text-2xl sm:text-3xl font-black font-orbitron text-blue-400 glow-text mb-4">
                                 120 000 ₸
                             </div>
 
-                            <button onclick="openBookingModal()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95">
-                                Зафиксировать цену и дату
+                            <button onclick="bookCalculatedServices()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Забронировать по этой цене</span>
                             </button>
                         </div>
                     </div>
@@ -473,34 +722,34 @@
             </div>
         </section>
 
-        <!-- SECTION 5: BEFORE / AFTER SLIDER -->
-        <section id="before-after" class="py-20 px-4 md:px-10">
+        <!-- SECTION 7: BEFORE / AFTER SLIDER -->
+        <section id="before-after" class="py-12 px-4 md:px-10 pointer-events-auto">
             <div class="max-w-5xl mx-auto">
-                <div class="text-center max-w-2xl mx-auto mb-12">
+                <div class="text-center max-w-xl mx-auto mb-8">
                     <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Визуальный эффект</span>
-                    <h2 class="text-3xl md:text-5xl font-black font-orbitron mt-2">До / После <span class="text-blue-500">Полировки</span></h2>
-                    <p class="text-gray-400 text-sm mt-2">Перетащите ползунок в центре, чтобы оценить восстановительный эффект нанокерамики</p>
+                    <h2 class="text-2xl md:text-4xl font-black font-orbitron mt-1">До / После <span class="text-blue-500">Детейлинга</span></h2>
+                    <p class="text-gray-400 text-xs mt-1">Перетащите слайдер для сравнения результата</p>
                 </div>
 
-                <div class="relative w-full h-[380px] sm:h-[480px] rounded-3xl overflow-hidden glass-panel border border-white/20 select-none cursor-ew-resize" id="ba-container">
+                <div class="relative w-full h-[320px] sm:h-[420px] rounded-3xl overflow-hidden glass-panel border border-white/20 select-none cursor-ew-resize" id="ba-container">
                     
-                    <!-- AFTER IMAGE (BOTTOM LAYER - Perfect Mirror Gloss) -->
+                    <!-- AFTER IMAGE (BOTTOM LAYER) -->
                     <div class="absolute inset-0 bg-cover bg-center flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1600&q=80');">
-                        <span class="absolute top-6 right-6 px-4 py-2 glass-panel rounded-full text-xs font-bold tracking-widest text-emerald-400 border border-emerald-500/40">
+                        <span class="absolute top-4 right-4 px-3 py-1.5 glass-panel rounded-full text-[11px] font-bold tracking-widest text-emerald-400 border border-emerald-500/40">
                             ПОСЛЕ (Зеркальный блеск + Керамика)
                         </span>
                     </div>
 
-                    <!-- BEFORE IMAGE (TOP LAYER - Dull Scratched) -->
-                    <div id="ba-before-layer" class="absolute inset-y-0 left-0 bg-cover bg-center overflow-hidden" style="width: 50%; background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80'); filter: grayscale(40%) contrast(85%);">
-                        <span class="absolute top-6 left-6 px-4 py-2 glass-panel rounded-full text-xs font-bold tracking-widest text-red-400 border border-red-500/40 whitespace-nowrap">
-                            ДО (Оксид, Царапины, Голограммы)
+                    <!-- BEFORE IMAGE (TOP LAYER) -->
+                    <div id="ba-before-layer" class="absolute inset-y-0 left-0 bg-cover bg-center overflow-hidden" style="width: 50%; background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80'); filter: grayscale(50%) contrast(80%);">
+                        <span class="absolute top-4 left-4 px-3 py-1.5 glass-panel rounded-full text-[11px] font-bold tracking-widest text-red-400 border border-red-500/40 whitespace-nowrap">
+                            ДО (Царапины, Голограммы)
                         </span>
                     </div>
 
                     <!-- SLIDER DIVIDER LINE -->
                     <div id="ba-slider-line" class="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize ba-slider-handle flex items-center justify-center" style="left: 50%;">
-                        <div class="w-10 h-10 rounded-full bg-blue-600 border-2 border-white text-white flex items-center justify-center text-xs shadow-xl">
+                        <div class="w-9 h-9 rounded-full bg-blue-600 border-2 border-white text-white flex items-center justify-center text-xs shadow-xl">
                             <i class="fa-solid fa-arrows-left-right"></i>
                         </div>
                     </div>
@@ -509,76 +758,76 @@
             </div>
         </section>
 
-        <!-- SECTION 6: CONTACTS & LOCATION -->
-        <section id="contacts" class="py-20 px-4 md:px-10">
-            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <!-- SECTION 8: CONTACTS & LOCATION (COMPACT) -->
+        <section id="contacts" class="py-12 px-4 md:px-10 pointer-events-auto">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <div class="lg:col-span-5 space-y-8">
+                <div class="lg:col-span-5 space-y-6">
                     <div>
                         <span class="text-blue-400 text-xs font-bold uppercase tracking-widest">Контакты & Локация</span>
-                        <h2 class="text-3xl md:text-5xl font-black font-orbitron mt-2">Ждем <span class="text-blue-500">Вас</span></h2>
-                        <p class="text-gray-400 text-sm mt-3">Теплый охраняемый паркинг, комфортная VIP-зона ожидания с кофе и напитками.</p>
+                        <h2 class="text-2xl md:text-4xl font-black font-orbitron mt-1">Ждем <span class="text-blue-500">Вас</span></h2>
+                        <p class="text-gray-400 text-xs mt-2">Охраняемый теплый бокс, VIP-зона ожидания с кофе и Wi-Fi.</p>
                     </div>
 
-                    <div class="space-y-6">
-                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3 glass-card p-3.5 rounded-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg shrink-0">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-gray-400 uppercase font-semibold">Адрес студии</div>
-                                <div class="text-sm font-bold text-white mt-1">г. Астана, пр. Мангилик Ел, 55/2</div>
+                                <div class="text-[10px] text-gray-400 uppercase font-semibold">Адрес студии</div>
+                                <div class="text-xs font-bold text-white mt-0.5">г. Астана, пр. Мангилик Ел, 55/2</div>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                        <div class="flex items-start gap-3 glass-card p-3.5 rounded-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg shrink-0">
                                 <i class="fa-solid fa-phone"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-gray-400 uppercase font-semibold">Телефон для записи</div>
-                                <a href="tel:+77770000000" class="text-sm font-bold text-blue-400 hover:underline mt-1 block">+7 (777) 000-00-00</a>
+                                <div class="text-[10px] text-gray-400 uppercase font-semibold">Телефон для записи</div>
+                                <a href="tel:+77770000000" class="text-xs font-bold text-blue-400 hover:underline mt-0.5 block">+7 (777) 000-00-00</a>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-4 glass-card p-4 rounded-2xl">
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shrink-0">
+                        <div class="flex items-start gap-3 glass-card p-3.5 rounded-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg shrink-0">
                                 <i class="fa-solid fa-clock"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-gray-400 uppercase font-semibold">График работы</div>
-                                <div class="text-sm font-bold text-white mt-1">Ежедневно с 09:00 до 21:00</div>
+                                <div class="text-[10px] text-gray-400 uppercase font-semibold">График работы</div>
+                                <div class="text-xs font-bold text-white mt-0.5">Ежедневно с 09:00 до 21:00</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Contact Form -->
-                <div class="lg:col-span-7 glass-panel rounded-3xl p-8 border border-white/10">
-                    <h3 class="text-xl font-bold font-orbitron mb-6">Оставить заявку на консультацию</h3>
-                    <form onsubmit="handleContactSubmit(event)" class="space-y-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="lg:col-span-7 glass-panel rounded-3xl p-6 md:p-8 border border-white/10">
+                    <h3 class="text-lg font-bold font-orbitron mb-4">Консультация с Детейлером</h3>
+                    <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-semibold text-gray-400 block mb-2">Ваше имя</label>
-                                <input type="text" required placeholder="Арман" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <label class="text-[11px] font-semibold text-gray-400 block mb-1">Ваше имя</label>
+                                <input type="text" required placeholder="Арман" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs focus:border-blue-500 focus:outline-none text-white">
                             </div>
                             <div>
-                                <label class="text-xs font-semibold text-gray-400 block mb-2">Номер телефона</label>
-                                <input type="tel" required placeholder="+7 (707) 000-00-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <label class="text-[11px] font-semibold text-gray-400 block mb-1">Номер телефона</label>
+                                <input type="tel" required placeholder="+7 (707) 000-00-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs focus:border-blue-500 focus:outline-none text-white">
                             </div>
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-400 block mb-2">Марка и модель авто</label>
-                            <input type="text" placeholder="например: BMW M5 F90" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <label class="text-[11px] font-semibold text-gray-400 block mb-1">Марка и модель авто</label>
+                            <input type="text" placeholder="например: Porsche Cayenne / BMW M5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs focus:border-blue-500 focus:outline-none text-white">
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-400 block mb-2">Интересующая услуга / вопрос</label>
-                            <textarea rows="3" placeholder="Укажите подробности..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                            <label class="text-[11px] font-semibold text-gray-400 block mb-1">Интересующая услуга или вопрос</label>
+                            <textarea rows="2" placeholder="Укажите Ваши пожелания..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs focus:border-blue-500 focus:outline-none resize-none text-white"></textarea>
                         </div>
 
-                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95">
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95">
                             Отправить заявку
                         </button>
                     </form>
@@ -588,10 +837,10 @@
         </section>
 
         <!-- FOOTER -->
-        <footer class="border-t border-white/10 py-10 px-4 md:px-10 text-xs text-gray-500">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <footer class="border-t border-white/10 py-6 px-4 md:px-10 text-[11px] text-gray-500 pointer-events-auto">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
                 <p>&copy; 2026 NOMAD Detailing Studio. Все права защищены.</p>
-                <div class="flex gap-6">
+                <div class="flex gap-4">
                     <a href="#" class="hover:text-gray-300">Политика конфиденциальности</a>
                     <a href="#" class="hover:text-gray-300">Публичная оферта</a>
                 </div>
@@ -602,7 +851,7 @@
 
     <!-- MODAL 1: ONLINE BOOKING -->
     <div id="booking-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-blue-500/30 relative animate-in fade-in zoom-in duration-200">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-blue-500/30 relative">
             <button onclick="closeBookingModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -613,18 +862,18 @@
             <form onsubmit="handleBookingSubmit(event)" class="space-y-4">
                 <div>
                     <label class="text-xs font-semibold text-gray-400 block mb-1">Имя и Фамилия</label>
-                    <input type="text" required placeholder="Ерлан" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                    <input type="text" required placeholder="Ерлан" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none text-white">
                 </div>
 
                 <div>
                     <label class="text-xs font-semibold text-gray-400 block mb-1">Телефон</label>
-                    <input type="tel" required placeholder="+7 (700) 123-45-67" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                    <input type="tel" required placeholder="+7 (700) 123-45-67" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none text-white">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-semibold text-gray-400 block mb-1">Желаемая дата</label>
-                        <input type="date" required class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
+                        <input type="date" required class="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="text-xs font-semibold text-gray-400 block mb-1">Время</label>
@@ -638,14 +887,8 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-semibold text-gray-400 block mb-1">Основная услуга</label>
-                    <select class="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
-                        <option>Нанокерамика 9H</option>
-                        <option>Восстановительная полировка</option>
-                        <option>PPF Бронирование кузова</option>
-                        <option>Детейлинг химчистка салона</option>
-                        <option>Комплексная защита</option>
-                    </select>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Выбранные услуги / Детали</label>
+                    <textarea id="booking-services-input" rows="3" class="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-blue-500 focus:outline-none resize-none">Консультация детейлера</textarea>
                 </div>
 
                 <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs transition-all shadow-lg hover:shadow-blue-500/25 mt-2">
@@ -663,14 +906,14 @@
             </button>
 
             <div id="service-modal-content">
-                <!-- Dynamic content injected via JS -->
+                <!-- Injected dynamically -->
             </div>
         </div>
     </div>
 
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 hidden glass-panel border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-3">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <i class="fa-solid fa-circle-check text-emerald-400 text-2xl"></i>
         <div>
             <div id="toast-title" class="text-sm font-bold text-white">Успешно!</div>
             <div id="toast-msg" class="text-xs text-gray-300">Ваша заявка принята. Менеджер свяжется с вами.</div>
@@ -679,22 +922,24 @@
 
     <script>
         // -------------------------------------------------------------
-        // THREE.JS 3D SCENE & CAR MODEL GENERATOR
+        // THREE.JS SCENE SETUP WITH ENHANCED SUPERCAR GEOMETRY
         // -------------------------------------------------------------
-        let scene, camera, renderer;
+        let scene, camera, renderer, controls;
         let carGroup, carBodyMesh, studioLightsGroup, neonLightsGroup;
+        let headLightLights = [];
         let isAutoRotate = true;
+        let areHeadlightsOn = true;
 
         function init3D() {
             const container = document.getElementById('webgl-container');
 
-            // Scene setup
+            // Scene
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x08080c, 0.035);
+            scene.fog = new THREE.FogExp2(0x06070a, 0.035);
 
-            // Camera setup
+            // Camera
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(4, 2, 7);
+            camera.position.set(4.8, 2.0, 6.2);
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -703,53 +948,60 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
+            renderer.toneMappingExposure = 1.3;
 
             container.appendChild(renderer.domElement);
 
-            // Lights
+            // Orbit Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.02;
+            controls.minDistance = 3;
+            controls.maxDistance = 12;
+            controls.target.set(0, 0.6, 0);
+
             setupLighting();
-
-            // Environment & Car
             createFloorGrid();
-            createCarModel();
+            createSportsCar();
 
-            // Event Listeners
             window.addEventListener('resize', onWindowResize);
-
-            // Start Render Loop
             animate();
         }
 
         function setupLighting() {
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-            scene.add(ambientLight);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.45);
+            scene.add(ambient);
 
-            // Studio Overhead Lights
+            // Studio Overhead Light Group
             studioLightsGroup = new THREE.Group();
 
-            const topSpot = new THREE.SpotLight(0xffffff, 120);
+            const topSpot = new THREE.SpotLight(0xffffff, 160);
             topSpot.position.set(0, 10, 0);
             topSpot.angle = Math.PI / 3;
             topSpot.penumbra = 0.5;
             topSpot.castShadow = true;
             studioLightsGroup.add(topSpot);
 
-            const sideLight = new THREE.DirectionalLight(0x3b82f6, 1.5);
-            sideLight.position.set(5, 5, 5);
-            studioLightsGroup.add(sideLight);
+            const sideKey = new THREE.DirectionalLight(0x3b82f6, 2.0);
+            sideKey.position.set(6, 6, 4);
+            studioLightsGroup.add(sideKey);
+
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            fillLight.position.set(-6, 4, -4);
+            studioLightsGroup.add(fillLight);
 
             scene.add(studioLightsGroup);
 
             // Neon Lights Group
             neonLightsGroup = new THREE.Group();
 
-            const bluePoint = new THREE.PointLight(0x2563eb, 50, 15);
-            bluePoint.position.set(-3, 0.5, 3);
+            const bluePoint = new THREE.PointLight(0x2563eb, 100, 15);
+            bluePoint.position.set(-3.5, 0.8, 3);
             neonLightsGroup.add(bluePoint);
 
-            const purplePoint = new THREE.PointLight(0xa855f7, 50, 15);
-            purplePoint.position.set(3, 0.5, -3);
+            const purplePoint = new THREE.PointLight(0xa855f7, 100, 15);
+            purplePoint.position.set(3.5, 0.8, -3);
             neonLightsGroup.add(purplePoint);
 
             neonLightsGroup.visible = false;
@@ -757,118 +1009,172 @@
         }
 
         function createFloorGrid() {
-            // Reflective floor
             const floorGeo = new THREE.PlaneGeometry(80, 80);
             const floorMat = new THREE.MeshStandardMaterial({
-                color: 0x08080c,
-                roughness: 0.15,
-                metalness: 0.8
+                color: 0x06070a,
+                roughness: 0.12,
+                metalness: 0.88
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // Grid overlay
-            const grid = new THREE.GridHelper(40, 40, 0x2563eb, 0x111118);
+            const grid = new THREE.GridHelper(40, 40, 0x2563eb, 0x111625);
             grid.position.y = 0.005;
             grid.material.transparent = true;
-            grid.material.opacity = 0.25;
+            grid.material.opacity = 0.35;
             scene.add(grid);
         }
 
-        function createCarModel() {
+        function createSportsCar() {
             carGroup = new THREE.Group();
 
             // Materials
-            const bodyMaterial = new THREE.MeshStandardMaterial({
-                color: 0x0c0c12,
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: 0x0a0b10,
                 roughness: 0.1,
-                metalness: 0.85,
+                metalness: 0.9,
                 clearcoat: 1.0,
-                clearcoatRoughness: 0.05
+                clearcoatRoughness: 0.03
+            });
+
+            const darkTrimMat = new THREE.MeshStandardMaterial({
+                color: 0x111115,
+                roughness: 0.4,
+                metalness: 0.8
             });
 
             const glassMat = new THREE.MeshStandardMaterial({
-                color: 0x000000,
+                color: 0x050508,
                 roughness: 0.0,
-                metalness: 0.9,
+                metalness: 0.95,
                 transparent: true,
-                opacity: 0.85
+                opacity: 0.88
             });
 
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.8 });
-            const chromeMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.95, roughness: 0.1 });
+            const tireMat = new THREE.MeshStandardMaterial({ color: 0x151518, roughness: 0.85 });
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.95, roughness: 0.1 });
+            const brakeMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2 });
 
-            // Main Lower Body
-            const bodyGeo = new THREE.BoxGeometry(2.4, 0.65, 4.8);
-            carBodyMesh = new THREE.Mesh(bodyGeo, bodyMaterial);
-            carBodyMesh.position.y = 0.55;
+            // 1. Lower Chassis
+            const baseGeo = new THREE.BoxGeometry(2.1, 0.4, 4.5);
+            carBodyMesh = new THREE.Mesh(baseGeo, bodyMat);
+            carBodyMesh.position.y = 0.45;
             carBodyMesh.castShadow = true;
             carGroup.add(carBodyMesh);
 
-            // Sleek Roof Cabin
-            const cabinGeo = new THREE.BoxGeometry(1.9, 0.55, 2.3);
+            // 2. Aerodynamic Hood
+            const hoodGeo = new THREE.BoxGeometry(1.9, 0.2, 1.6);
+            const hood = new THREE.Mesh(hoodGeo, bodyMat);
+            hood.position.set(0, 0.65, 1.1);
+            hood.rotation.x = 0.08;
+            carGroup.add(hood);
+
+            // 3. Curved Glass Cabin
+            const cabinGeo = new THREE.BoxGeometry(1.7, 0.5, 2.2);
             const cabin = new THREE.Mesh(cabinGeo, glassMat);
-            cabin.position.set(0, 1.05, -0.2);
+            cabin.position.set(0, 0.92, -0.2);
             cabin.castShadow = true;
             carGroup.add(cabin);
 
-            // Hood slant accent
-            const hoodGeo = new THREE.BoxGeometry(2.0, 0.1, 1.4);
-            const hood = new THREE.Mesh(hoodGeo, bodyMaterial);
-            hood.position.set(0, 0.82, 1.1);
-            hood.rotation.x = 0.1;
-            carGroup.add(hood);
+            // 4. Roof Frame
+            const roofGeo = new THREE.BoxGeometry(1.65, 0.06, 1.4);
+            const roof = new THREE.Mesh(roofGeo, bodyMat);
+            roof.position.set(0, 1.18, -0.2);
+            carGroup.add(roof);
 
-            // Wheels & Brake Discs
-            const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 32);
-            const rimGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.3, 16);
+            // 5. Side Mirrors
+            const mirrorGeo = new THREE.BoxGeometry(0.25, 0.1, 0.15);
+            const mirrorL = new THREE.Mesh(mirrorGeo, bodyMat);
+            mirrorL.position.set(-1.0, 0.82, 0.4);
+            const mirrorR = mirrorL.clone();
+            mirrorR.position.set(1.0, 0.82, 0.4);
+            carGroup.add(mirrorL);
+            carGroup.add(mirrorR);
 
+            // 6. Rear Wing Spoiler
+            const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.05, 0.4), bodyMat);
+            spoilerWing.position.set(0, 1.1, -2.1);
+            carGroup.add(spoilerWing);
+
+            const legGeo = new THREE.BoxGeometry(0.08, 0.2, 0.12);
+            const leg1 = new THREE.Mesh(legGeo, darkTrimMat);
+            leg1.position.set(-0.65, 0.98, -2.1);
+            const leg2 = leg1.clone();
+            leg2.position.set(0.65, 0.98, -2.1);
+            carGroup.add(leg1);
+            carGroup.add(leg2);
+
+            // 7. Detailed Wheels & Brake Assemblies
             const wheelPositions = [
-                [-1.25, 0.38, 1.4],  // FL
-                [1.25, 0.38, 1.4],   // FR
-                [-1.25, 0.38, -1.4], // RL
-                [1.25, 0.38, -1.4]  // RR
+                [-1.12, 0.38, 1.35],
+                [1.12, 0.38, 1.35],
+                [-1.12, 0.38, -1.35],
+                [1.12, 0.38, -1.35]
             ];
+
+            const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 32);
+            const rimGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.29, 16);
+            const spokeGeo = new THREE.BoxGeometry(0.04, 0.28, 0.48);
+            const brakeGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16);
 
             wheelPositions.forEach(pos => {
                 const wGroup = new THREE.Group();
                 wGroup.position.set(pos[0], pos[1], pos[2]);
                 wGroup.rotation.z = Math.PI / 2;
 
-                const tire = new THREE.Mesh(wheelGeo, wheelMat);
+                const tire = new THREE.Mesh(tireGeo, tireMat);
                 tire.castShadow = true;
 
-                const rim = new THREE.Mesh(rimGeo, chromeMat);
+                const rim = new THREE.Mesh(rimGeo, rimMat);
+                const brake = new THREE.Mesh(brakeGeo, brakeMat);
+
+                // Add rim spokes
+                for (let i = 0; i < 5; i++) {
+                    const spoke = new THREE.Mesh(spokeGeo, rimMat);
+                    spoke.rotation.x = (i * Math.PI) / 2.5;
+                    rim.add(spoke);
+                }
 
                 wGroup.add(tire);
                 wGroup.add(rim);
+                wGroup.add(brake);
                 carGroup.add(wGroup);
             });
 
-            // Headlights
-            const headLightGeo = new THREE.BoxGeometry(0.6, 0.12, 0.1);
-            const headLightMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+            // 8. Front LED Headlights & Spotlights
+            const hlMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+            const hlGeo = new THREE.BoxGeometry(0.5, 0.08, 0.12);
 
-            const hlL = new THREE.Mesh(headLightGeo, headLightMat);
-            hlL.position.set(-0.75, 0.65, 2.41);
+            const hlL = new THREE.Mesh(hlGeo, hlMat);
+            hlL.position.set(-0.68, 0.58, 2.26);
+            const hlR = hlL.clone();
+            hlR.position.set(0.68, 0.58, 2.26);
             carGroup.add(hlL);
-
-            const hlR = new THREE.Mesh(headLightGeo, headLightMat);
-            hlR.position.set(0.75, 0.65, 2.41);
             carGroup.add(hlR);
 
-            // Taillights
-            const tailLightGeo = new THREE.BoxGeometry(0.8, 0.1, 0.1);
-            const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const spotL = new THREE.SpotLight(0x93c5fd, 35, 12, Math.PI / 5, 0.4);
+            spotL.position.set(-0.68, 0.58, 2.3);
+            spotL.target.position.set(-0.68, 0, 8);
+            carGroup.add(spotL);
+            carGroup.add(spotL.target);
+            headLightLights.push(spotL);
 
-            const tl = new THREE.Mesh(tailLightGeo, tailLightMat);
-            tl.position.set(0, 0.68, -2.41);
+            const spotR = spotL.clone();
+            spotR.position.set(0.68, 0.58, 2.3);
+            spotR.target.position.set(0.68, 0, 8);
+            carGroup.add(spotR);
+            carGroup.add(spotR.target);
+            headLightLights.push(spotR);
+
+            // 9. Continuous Rear Taillight Bar
+            const tlMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const tlGeo = new THREE.BoxGeometry(1.8, 0.06, 0.08);
+            const tl = new THREE.Mesh(tlGeo, tlMat);
+            tl.position.set(0, 0.62, -2.26);
             carGroup.add(tl);
 
-            // Position car in scene
-            carGroup.position.set(1.5, 0, 0);
             scene.add(carGroup);
         }
 
@@ -881,6 +1187,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            if (controls) controls.update();
+
             if (isAutoRotate && carGroup) {
                 carGroup.rotation.y += 0.003;
             }
@@ -891,9 +1199,30 @@
         // -------------------------------------------------------------
         // INTERACTIVE CONFIGURATOR CONTROLS
         // -------------------------------------------------------------
-        function setCarColor(hexColor) {
+        function setCarColor(hexColor, btnEl) {
             if (carBodyMesh) {
                 carBodyMesh.material.color.setHex(hexColor);
+            }
+            if (btnEl) {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btnEl.classList.add('active');
+            }
+        }
+
+        function setFinishType(type) {
+            if (!carBodyMesh) return;
+            if (type === 'gloss') {
+                carBodyMesh.material.roughness = 0.1;
+                carBodyMesh.material.metalness = 0.85;
+                carBodyMesh.material.clearcoat = 1.0;
+            } else if (type === 'matte') {
+                carBodyMesh.material.roughness = 0.65;
+                carBodyMesh.material.metalness = 0.15;
+                carBodyMesh.material.clearcoat = 0.0;
+            } else if (type === 'metallic') {
+                carBodyMesh.material.roughness = 0.25;
+                carBodyMesh.material.metalness = 0.95;
+                carBodyMesh.material.clearcoat = 0.85;
             }
         }
 
@@ -913,18 +1242,21 @@
             btn.classList.toggle('bg-blue-600/40');
         }
 
-        function resetCameraView() {
-            camera.position.set(4, 2, 7);
-            if (carGroup) carGroup.rotation.y = 0;
+        function toggleHeadlights() {
+            areHeadlightsOn = !areHeadlightsOn;
+            headLightLights.forEach(l => l.visible = areHeadlightsOn);
+            document.getElementById('headlight-btn').classList.toggle('bg-yellow-500/20');
         }
 
         // -------------------------------------------------------------
-        // CALCULATOR LOGIC
+        // CALCULATOR LOGIC & BOOKING INTEGRATION
         // -------------------------------------------------------------
         let currentCoeff = 1.0;
+        let currentClassName = 'Седан / Хэтчбек';
 
-        function selectCarClass(coeff, btnEl) {
+        function selectCarClass(coeff, btnEl, className) {
             currentCoeff = coeff;
+            currentClassName = className;
             document.querySelectorAll('.car-class-btn').forEach(b => {
                 b.classList.remove('border-2', 'border-blue-500', 'bg-blue-500/20', 'text-white');
                 b.classList.add('text-gray-400');
@@ -933,9 +1265,7 @@
             btnEl.classList.add('border-2', 'border-blue-500', 'bg-blue-500/20', 'text-white');
             btnEl.classList.remove('text-gray-400');
 
-            const coeffText = coeff === 1.0 ? 'x1.0 (Седан)' : (coeff === 1.25 ? 'x1.25 (Кроссовер)' : 'x1.5 (Внедорожник)');
-            document.getElementById('calc-coeff').textContent = coeffText;
-
+            document.getElementById('calc-coeff').textContent = `x${coeff} (${className})`;
             calculateTotal();
         }
 
@@ -951,6 +1281,19 @@
 
             const total = Math.round(sum * currentCoeff);
             document.getElementById('total-price').textContent = total.toLocaleString('ru-RU') + ' ₸';
+            return total;
+        }
+
+        function bookCalculatedServices() {
+            const selectedList = [];
+            document.querySelectorAll('.calc-checkbox:checked').forEach(cb => {
+                selectedList.push(cb.getAttribute('data-title'));
+            });
+
+            const total = calculateTotal();
+            const text = `Класс авто: ${currentClassName}\nВыбранные услуги:\n- ${selectedList.join('\n- ')}\nИтого к оплате: ${total.toLocaleString('ru-RU')} ₸`;
+
+            openBookingModal(text);
         }
 
         // -------------------------------------------------------------
@@ -977,16 +1320,28 @@
             window.addEventListener('mouseup', () => { isDragging = false; });
             window.addEventListener('mousemove', (e) => { if (isDragging) moveSlider(e.clientX); });
 
-            // Touch support
             container.addEventListener('touchstart', (e) => { isDragging = true; moveSlider(e.touches[0].clientX); });
             window.addEventListener('touchend', () => { isDragging = false; });
             window.addEventListener('touchmove', (e) => { if (isDragging) moveSlider(e.touches[0].clientX); });
         }
 
         // -------------------------------------------------------------
-        // MODALS & NOTIFICATIONS
+        // FAQ TOGGLE
         // -------------------------------------------------------------
-        function openBookingModal() {
+        function toggleFaq(btn) {
+            const answer = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
+            answer.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+
+        // -------------------------------------------------------------
+        // DYNAMIC MODALS & NOTIFICATIONS
+        // -------------------------------------------------------------
+        function openBookingModal(serviceTitle) {
+            if (serviceTitle) {
+                document.getElementById('booking-services-input').value = serviceTitle;
+            }
             document.getElementById('booking-modal').classList.remove('hidden');
         }
 
@@ -1004,29 +1359,29 @@
                 title: "Нанокерамика 9H",
                 price: "от 120 000 ₸",
                 time: "24-36 часов",
-                desc: "Нанесение 2-х слоев состава 9H + гидрофобный слой Top Coat. Обезжиривание кузова, дезактивация железа, мягкая подложечная полировка.",
-                steps: ["Детейлинг-мойка кузова и арок", "Глубокая очистка глиной", "Подготовительный полировочный этап", "Обезжиривание спиртовыми составами", "Послойное нанесение Ceramic Pro / ServFaces"]
+                desc: "Многослойное защитное покрытие на основе диоксида кремния (SiO2). Формирует на поверхности ЛКП прочный гидрофобный слой с выравниванием микроцарапин и глубоким зеркальным блеском.",
+                steps: ["Детейлинг-мойка кузова и колесных арок", "Глубокая дезактивация железа и гудрона", "Мягкая финишная полировка кузова", "Обезжиривание специализированным спиртовым составом", "Нанесение 2-х слоев Ceramic Pro 9H + гидрофобный Top Coat"]
             },
             polishing: {
                 title: "Восстановительная Полировка",
                 price: "от 80 000 ₸",
                 time: "12-24 часа",
-                desc: "Многошаговая полировка с сохранением толщины лака. Устраняет риски, въевшиеся пятна от почек и птичьего помета.",
-                steps: ["Замер толщины ЛКП толщиномером", "Маскировка пластиковых элементов", "Первичный шаг пастой высокой абразивности", "Финишный шаг для идеального зеркального глянца"]
+                desc: "Бережная многошаговая полировка эксцентриковыми и роторными машинками Koch Chemie / Rupes без истончения заводского лака.",
+                steps: ["Замер толщины ЛКП толщиномером", "Маскировка пластика и уплотнителей", "Первичный абразивный шаг пастой", "Финишный шаг устранения голограмм и микроцарапин"]
             },
             ppf: {
                 title: "Антигравийная пленка (PPF)",
                 price: "от 250 000 ₸",
                 time: "2-3 дня",
-                desc: "Полная оклейка кузова или зон риска плотным полиуретаном (190-200 мкр) с лаковым слоем с самовосстановлением при нагреве.",
-                steps: ["Подготовка и выкройка по лекалам", "Очистка кузова", "Беспосадочная установка с заворотом краев", "Финишная сушка в боксе"]
+                desc: "Оклейка премиальным американским и корейским полиуретаном STEK Shield / SunTek (190-200 мкр). Пленка имеет слой TopCoat с эффектом самовосстановления от тепла.",
+                steps: ["Плоттерная выкройка под конкретную модель авто", "Глубокая химическая очистка кузова", "Установка с подворотом краев без демонтажа деталей", "Финишная сушка и контрольная проверка"]
             },
             interior: {
                 title: "Детейлинг Салона",
                 price: "от 65 000 ₸",
                 time: "10-14 часов",
-                desc: "Глубокая очистка кожаных и тканевых покрытий экстрактором, подача пара, пропитка бальзамом-кондиционером с запахом дорогой кожи.",
-                steps: ["Демонтаж сидений (по согласованию)", "Пневмо-очистка Tornador", "Обработка кожи составами Koch Chemie", "Озонирование и нейтрализация запахов"]
+                desc: "Полная дезинфекция и гипоаллергенная чистка всех внутренних поверхностей с озонированием климатической системы.",
+                steps: ["Пневмо-очистка аппаратом Tornador", "Чистка ковров и сидений моющим экстрактором", "Обработка и питательный бальзам для кожаной обивки", "Озонирование салона от бактерий и неприятных запахов"]
             }
         };
 
@@ -1042,12 +1397,12 @@
                 </div>
                 <p class="text-sm text-gray-300 leading-relaxed mb-6">${item.desc}</p>
                 
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Этапы выполнения:</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Регламент выполнения:</h4>
                 <ul class="space-y-2 text-xs text-gray-300 mb-8">
-                    ${item.steps.map(s => `<li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-400"></i> ${s}</li>`).join('')}
+                    ${item.steps.map(s => `<li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-blue-400"></i> ${s}</li>`).join('')}
                 </ul>
 
-                <button onclick="closeServiceModal(); openBookingModal();" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs shadow-lg">
+                <button onclick="closeServiceModal(); openBookingModal('${item.title}');" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl uppercase tracking-wider text-xs shadow-lg">
                     Записаться на эту услугу
                 </button>
             `;
@@ -1070,18 +1425,18 @@
 
         function handleContactSubmit(e) {
             e.preventDefault();
-            showToast("Заявка отправлена!", "Мы перезвоним вам в течение 10 минут.");
+            showToast("Заявка отправлена!", "Наш менеджер перезвонит вам в течение 10 минут.");
             e.target.reset();
         }
 
         function handleBookingSubmit(e) {
             e.preventDefault();
             closeBookingModal();
-            showToast("Бронирование успешно!", "Ждем вас в назначенное время в студии NOMAD.");
+            showToast("Запись подтверждена!", "Ждем вас в назначенное время в студии NOMAD.");
             e.target.reset();
         }
 
-        // Window Load Initialization
+        // Init on load
         window.onload = function() {
             init3D();
             initBeforeAfterSlider();
